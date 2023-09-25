@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  database:
+    image: postgres:15-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=orderful_db
+      - POSTGRES_USER=orderful_user
+      - POSTGRES_PASSWORD=orderful_password
+    volumes:
+      - database_data:/var/lib/postgresql/data/
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin/data
+    depends_on:
+      - database
+
+volumes:
+  database_data:
+  pgadmin_data:
