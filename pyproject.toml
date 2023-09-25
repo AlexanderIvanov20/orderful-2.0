@@ -1,0 +1,37 @@
+[tool.poetry]
+authors = ["Alexander Ivanov"]
+description = ""
+license = "MIT License"
+name = "orderful-2-0"
+packages = [{include = "orderful"}]
+readme = "README.md"
+version = "2.0.0"
+
+[tool.poetry.dependencies]
+alembic = "^1.12.0"
+fastapi = {extras = ["all"], version = "^0.103.1"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+psycopg2-binary = "^2.9.7"
+pydantic = {extras = ["email"], version = "^2.3.0"}
+pydantic-settings = "^2.0.3"
+pytest = "^7.4.1"
+python = "^3.10"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+sqlalchemy = "^2.0.20"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+flake8 = "^6.1.0"
+isort = "^5.12.0"
+pre-commit = "^3.4.0"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
+
+[tool.black]
+line-length = 110
+
+[tool.isort]
+line_length = 110
+profile = "black"
