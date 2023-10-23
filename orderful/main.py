@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from orderful.core.settings import settings
-from orderful.routers.authentication import router as auth_router
+from orderful.routers.auth import router as auth_router
 from orderful.routers.orders import router as order_router
 from orderful.routers.products import router as product_router
 

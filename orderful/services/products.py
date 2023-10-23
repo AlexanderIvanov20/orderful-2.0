@@ -1,40 +1,28 @@
-from typing import Annotated
+from typing import Annotated, Any
 
-from fastapi import Depends, HTTPException, status
-from sqlalchemy.orm import Query, Session
+from fastapi import Depends
+from sqlalchemy.orm import Session
 
 from orderful.core.dependencies import get_session
+from orderful.models.categories import Category
 from orderful.models.products import Product
-from orderful.models.users import User
 from orderful.schemas.products import CreateProduct, UpdateProduct
+from orderful.services.associations_base import AssociationsMixin
 from orderful.services.base import BaseService
 
 
-class ProductService(BaseService[Product, CreateProduct, UpdateProduct]):
-    model: Product = Product
+class ProductService(AssociationsMixin, BaseService[Product, CreateProduct, UpdateProduct]):
+    model: type[Product] = Product
 
-    def get_products_by_user(self, current_user: User, offset: int, limit: int) -> Query[Product]:
-        if current_user.superuser:
-            return self.paginate(offset, limit).all()
+    @staticmethod
+    def _extract_ids_from_associations(associated_id: int, associations: list[dict[str, Any]]) -> list[int]:
+        return associations
 
-        return self.paginate(offset, limit).filter_by(user_id=current_user.id).all()
-
-    def get_product(self, id: int, current_user: User) -> Product:
-        product = self.get(id)
-
-        if not product:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"The product with id={id} does not exist.",
-            )
-
-        if not current_user.superuser and product.user_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="The current user does not have enough privileges.",
-            )
-
-        return product
+    @staticmethod
+    def _prepare_association_instance(
+        association: Category, association_model: type[Product], instance_name: str, instance: Product
+    ) -> dict[str, Any]:
+        return association_model(category_id=association, product=instance)
 
 
 def product_service(session: Annotated[Session, Depends(get_session)]):

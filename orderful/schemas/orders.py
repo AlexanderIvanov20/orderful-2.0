@@ -3,7 +3,13 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 from orderful.models.orders import Order
-from orderful.schemas.product_associations import ProductAssociation
+
+
+class ProductAssociation(BaseModel):
+    quantity: int
+    product_id: int
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BaseOrder(BaseModel):

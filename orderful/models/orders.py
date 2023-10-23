@@ -31,7 +31,9 @@ class Order(AuditDatesMixin, Base):
     start_date: Mapped[datetime] = mapped_column()
     status: Mapped[Status] = mapped_column(Enum(Status), server_default=Status.PENDING.value)
 
-    products: Mapped[list["OrderProductAssociation"]] = relationship(back_populates="order")
+    products: Mapped[list["OrderProductAssociation"]] = relationship(
+        back_populates="order", cascade="all, delete-orphan"
+    )
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped["User"] = relationship()

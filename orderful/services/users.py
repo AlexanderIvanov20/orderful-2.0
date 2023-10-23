@@ -13,7 +13,7 @@ from orderful.services.base import BaseService
 
 
 class UserService(PasswordServiceMixin, TokenServiceMixin, BaseService[User, CreateUser, UpdateUser]):
-    model: User = User
+    model: type[User] = User
 
     def authenticate(self, email: str, password: str) -> User | None:
         user = self.filter_by(email=email).first()
@@ -27,7 +27,6 @@ class UserService(PasswordServiceMixin, TokenServiceMixin, BaseService[User, Cre
         access_token = self.create_access_token(user.id)
         return Token(access_token=access_token, token_type=settings.TOKEN_TYPE)
 
-    # TODO: re-think this approach, google it.
     def authorize(self, data: CreateUser) -> User:
         user = self.filter_by(email=data.email).exists()
 
@@ -38,23 +37,6 @@ class UserService(PasswordServiceMixin, TokenServiceMixin, BaseService[User, Cre
             )
 
         return self.create(data)
-
-    def get_user(self, id: int, current_user: User) -> User | None:
-        user = self.get(id)
-
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"The user with id={id} does not exist.",
-            )
-
-        if not user.superuser and user != current_user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="The current user does not have enough privileges.",
-            )
-
-        return user
 
     def create(self, data: CreateUser, **kwargs: Any) -> User:
         data.password = self.get_password_hash(data.password)

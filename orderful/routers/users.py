@@ -31,7 +31,7 @@ def get_user(
     user_service: Annotated[UserService, Depends(user_service)],
     id: int,
 ):
-    return user_service.get_user(id, active_user)
+    return user_service.get_instance_by_user(id, active_user)
 
 
 @router.put("/{id}", response_model=schemas.User)
@@ -41,7 +41,7 @@ def update_user(
     data: schemas.UpdateUser,
     id: int,
 ):
-    user = user_service.get_user(id, active_user)
+    user = user_service.get_instance_by_user(id, active_user)
     return user_service.update(user, data)
 
 
@@ -51,5 +51,5 @@ def delete_user(
     user_service: Annotated[UserService, Depends(user_service)],
     id: int,
 ):
-    user = user_service.get_user(id, active_user)
+    user = user_service.get_instance_by_user(id, active_user)
     user_service.delete(user.id)

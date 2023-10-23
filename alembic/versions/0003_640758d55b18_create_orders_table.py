@@ -1,8 +1,8 @@
-"""create orders tables
+"""create orders table
 
-Revision ID: 0eb8eac444b9
-Revises: 1b193845792d
-Create Date: 2023-09-16 19:15:46.456914
+Revision ID: 0003_640758d55b18
+Revises: 0002_459e4ae7db55
+Create Date: 2023-09-27 21:05:30.131991
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "0eb8eac444b9"
-down_revision: Union[str, None] = "1b193845792d"
+revision: str = "0003_640758d55b18"
+down_revision: Union[str, None] = "0002_459e4ae7db55"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -23,6 +23,8 @@ def upgrade() -> None:
     op.create_table(
         "orders",
         sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("code", sa.String(length=20), nullable=False),
+        sa.Column("start_date", sa.DateTime(), nullable=False),
         sa.Column(
             "status",
             sa.Enum(
@@ -41,7 +43,7 @@ def upgrade() -> None:
         ),
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["users.id"],
@@ -71,3 +73,6 @@ def downgrade() -> None:
     op.drop_table("orders_products_association")
     op.drop_table("orders")
     # ### end Alembic commands ###
+
+    # Drop the `status` enum, since Alembic can't do it automatically.
+    sa.Enum(name="status").drop(op.get_bind())
