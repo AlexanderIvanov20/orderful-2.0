@@ -27,8 +27,8 @@ def authentication(
     return user_service.authenticate(data.username, data.password)
 
 
-@router.post("/validate-token", response_model=user_schemas.User)
-def validate_token(user: Annotated[User, Depends(get_current_user)]):
+@router.post("/me", response_model=user_schemas.User)
+def me(user: Annotated[User, Depends(get_current_user)]):
     return user
 
 

@@ -9,5 +9,7 @@ class Category(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100))
+
     parent_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"))
-    subcategories: Mapped["Category"] = relationship()
+    parent: Mapped["Category"] = relationship(back_populates="subcategories", remote_side=[id])
+    subcategories: Mapped[list["Category"]] = relationship(back_populates="parent")

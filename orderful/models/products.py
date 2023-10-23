@@ -22,7 +22,9 @@ class Product(AuditDatesMixin, Base):
 
     orders: Mapped[list["OrderProductAssociation"]] = relationship(back_populates="product")
 
-    categories: Mapped[list["CategoryProductAssociation"]] = relationship(back_populates="product")
+    categories: Mapped[list["CategoryProductAssociation"]] = relationship(
+        back_populates="product", cascade="all, delete-orphan"
+    )
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped["User"] = relationship()

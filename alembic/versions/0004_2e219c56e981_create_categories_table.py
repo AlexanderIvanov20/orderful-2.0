@@ -1,8 +1,8 @@
-"""create categories tables
+"""create categories table
 
-Revision ID: a9af9fde377c
-Revises: 0eb8eac444b9
-Create Date: 2023-09-16 19:37:08.011003
+Revision ID: 0004_2e219c56e981
+Revises: 0003_640758d55b18
+Create Date: 2023-09-27 22:35:14.580325
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "a9af9fde377c"
-down_revision: Union[str, None] = "0eb8eac444b9"
+revision: str = "0004_2e219c56e981"
+down_revision: Union[str, None] = "0003_640758d55b18"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -24,7 +24,7 @@ def upgrade() -> None:
         "categories",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(length=100), nullable=False),
-        sa.Column("parent_id", sa.Integer(), nullable=False),
+        sa.Column("parent_id", sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(
             ["parent_id"],
             ["categories.id"],

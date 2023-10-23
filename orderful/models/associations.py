@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from orderful.models.base import Base
 
 if TYPE_CHECKING:
+    from .categories import Category
     from .orders import Order
     from .products import Product
 
@@ -26,6 +27,7 @@ class CategoryProductAssociation(Base):
     __tablename__ = "categories_products_association"
 
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), primary_key=True)
+    category: Mapped["Category"] = relationship()
 
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), primary_key=True)
     product: Mapped["Product"] = relationship(back_populates="categories")

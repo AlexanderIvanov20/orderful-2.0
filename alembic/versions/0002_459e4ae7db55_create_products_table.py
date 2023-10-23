@@ -1,8 +1,8 @@
-"""create products tables
+"""create products table
 
-Revision ID: 1b193845792d
-Revises: c7cd9939a9e6
-Create Date: 2023-09-16 17:17:54.175004
+Revision ID: 0002_459e4ae7db55
+Revises: 0001_32caade008ac
+Create Date: 2023-09-27 21:03:45.169740
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "1b193845792d"
-down_revision: Union[str, None] = "c7cd9939a9e6"
+revision: str = "0002_459e4ae7db55"
+down_revision: Union[str, None] = "0001_32caade008ac"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -29,12 +29,13 @@ def upgrade() -> None:
         sa.Column("quantity", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["users.id"],
         ),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("article"),
     )
     # ### end Alembic commands ###
 
