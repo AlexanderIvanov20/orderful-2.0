@@ -1,16 +1,34 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, status
 
+from orderful.core.connections import connection_manager
 from orderful.core.settings import settings
 from orderful.models.associations import OrderProductAssociation
 from orderful.models.users import User
 from orderful.schemas import orders as schemas
 from orderful.services.orders import OrderService, order_service
 from orderful.services.products import ProductService, product_service
-from orderful.services.users import get_current_active_user
+from orderful.services.users import UserService, get_current_active_user, user_service
 
 router = APIRouter(prefix="/orders")
+
+
+@router.websocket("/status")
+async def get_order_status(
+    user_service: Annotated[UserService, Depends(user_service)],
+    websocket: WebSocket,
+    access_token: str,
+):
+    user = user_service.verify_token(access_token)
+
+    await connection_manager.connect(websocket, user.id)
+
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        connection_manager.disconnect(user.id)
 
 
 @router.get("/", response_model=list[schemas.Order])
