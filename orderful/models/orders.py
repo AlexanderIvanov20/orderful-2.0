@@ -40,17 +40,12 @@ class Order(AuditDatesMixin, Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped["User"] = relationship()
 
-    @property
-    def received(self):
-        return self.status == self.Status.RECEIVED
 
-
-# TODO: Not really logical, managers should confirm an order.
 @event.listens_for(Order, "after_insert")
 def take_order_in_progress(mapper: Mapper, connection: Connection, target: Order) -> None:
     object_session(target).query(Order).update(
         {
-            "status": Order.Status.IN_PROGRESS,
+            "status": Order.Status.PENDING,
         }
     )
 

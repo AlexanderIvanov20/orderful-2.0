@@ -9,7 +9,7 @@ class AssociationsMixin:
     @staticmethod
     def _extract_associations_from_data(
         data: CreateSchemaType, associated_field: str
-    ) -> list[dict[str, Any]]:
+    ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
         data_dump = data.model_dump(exclude_unset=True)
         return data_dump, data_dump.pop(associated_field)
 
@@ -42,6 +42,14 @@ class AssociationsMixin:
     ) -> dict[str, Any]:
         association[instance_name] = instance
         return association_model(**association)
+
+    @staticmethod
+    def _validate(
+        associations_data: list[dict[str, Any]],
+        association_ids: list[int],
+        associated_instances: list[ModelType],
+    ) -> None:
+        pass
 
     def _set_associations_for_instance(
         self,
@@ -76,6 +84,7 @@ class AssociationsMixin:
         associated_instances = self._get_associated_instances_by_ids(association_ids, associated_service)
 
         self._validate_associated_instances_existence(associated_field, association_ids, associated_instances)
+        self._validate(associations_data, associated_instances)
 
         if not instance:
             instance = super().create(data, **kwargs)
