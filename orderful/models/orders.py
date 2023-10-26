@@ -57,7 +57,6 @@ def subtract_items_quantity(mapper: Mapper, connection: Connection, target: Orde
         and target._sa_instance_state.committed_state["status"] != Order.Status.COMPLETED.value
     ):
         for association in target.products:
-            # TODO: Implement validation.
             association.product.quantity -= association.quantity
 
         object_session(target).bulk_save_objects(target.products)
