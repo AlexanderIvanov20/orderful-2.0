@@ -38,6 +38,10 @@ class UserService(PasswordServiceMixin, TokenServiceMixin, BaseService[User, Cre
 
         return self.create(data)
 
+    def verify_token(self, token: str) -> User:
+        token_data = self.get_token_data(token, settings.SECRET_KEY, authenticate_value="Bearer")
+        return self.get(token_data.sub)
+
     def create(self, data: CreateUser, **kwargs: Any) -> User:
         data.password = self.get_password_hash(data.password)
 
@@ -55,11 +59,10 @@ def user_service(session: Annotated[Session, Depends(get_session)]):
 
 
 def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
     user_service: Annotated[UserService, Depends(user_service)],
+    token: Annotated[str, Depends(oauth2_scheme)],
 ) -> User:
-    token_data = user_service.get_token_data(token, settings.SECRET_KEY, authenticate_value="Bearer")
-    user = user_service.get(token_data.sub)
+    user = user_service.verify_token(token)
 
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The user does not exist.")

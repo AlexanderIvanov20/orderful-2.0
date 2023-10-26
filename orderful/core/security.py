@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from orderful.core.settings import settings
 from orderful.schemas.tokens import TokenPayload
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.REST_ROUTE}/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.REST_ROUTE}/authentication/login")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
