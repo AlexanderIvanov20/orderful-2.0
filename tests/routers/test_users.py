@@ -11,7 +11,7 @@ from tests.routers import constants
 
 def test_get_users_view_schema(
     authenticated_client: Callable[[User], TestClient], superuser: User, user_factory: UserFactory
-) -> None:
+):
     for _ in range(3):
         user_factory(active=True)
 
