@@ -44,11 +44,7 @@ class AssociationsMixin:
         return association_model(**association)
 
     @staticmethod
-    def _validate(
-        associations_data: list[dict[str, Any]],
-        association_ids: list[int],
-        associated_instances: list[ModelType],
-    ) -> None:
+    def _validate(associations_data: list[dict[str, Any]], associated_instances: list[ModelType]) -> None:
         pass
 
     def _set_associations_for_instance(

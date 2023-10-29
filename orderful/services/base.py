@@ -57,7 +57,7 @@ class BaseReadOnlyService(SessionMixin, Generic[ModelType, CreateSchemaType, Upd
         if current_user.superuser:
             return self.paginate(offset, limit).all()
 
-        return self.paginate(offset, limit).filter_by(user_id=current_user.id).all()
+        return self.filter_by(user_id=current_user.id).offset(offset).limit(limit).all()
 
     def get_instance_by_user(self, id: int, current_user: User) -> ModelType | None:
         instance = self.get_instance(id)

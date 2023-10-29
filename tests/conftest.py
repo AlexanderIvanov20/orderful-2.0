@@ -13,7 +13,7 @@ from orderful.models.base import Base
 from orderful.models.users import User
 from orderful.services.users import UserService
 from tests.constants import TEST_PASSWORD
-from tests.factories import UserFactory
+from tests.factories import CategoryFactory, CategoryProductAssociationFactory, ProductFactory, UserFactory
 
 pg = create_postgres_fixture()
 
@@ -48,6 +48,9 @@ def setup_application(session: Session) -> Generator:
     app.dependency_overrides[get_session] = lambda: session
 
     UserFactory._meta.sqlalchemy_session = session
+    ProductFactory._meta.sqlalchemy_session = session
+    CategoryFactory._meta.sqlalchemy_session = session
+    CategoryProductAssociationFactory._meta.sqlalchemy_session = session
 
     yield
 
@@ -55,6 +58,21 @@ def setup_application(session: Session) -> Generator:
 @pytest.fixture
 def user_factory(session: Session) -> UserFactory:
     return UserFactory
+
+
+@pytest.fixture
+def category_factory(session: Session) -> CategoryFactory:
+    return CategoryFactory
+
+
+@pytest.fixture
+def product_factory(session: Session) -> ProductFactory:
+    return ProductFactory
+
+
+@pytest.fixture
+def category_product_association_factory(session: Session) -> CategoryProductAssociationFactory:
+    return CategoryProductAssociationFactory
 
 
 @pytest.fixture
