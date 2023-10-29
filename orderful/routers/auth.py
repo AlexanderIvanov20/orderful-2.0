@@ -6,9 +6,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from orderful.models.users import User
 from orderful.schemas import tokens as token_schemas
 from orderful.schemas import users as user_schemas
-from orderful.services.users import UserService, get_current_user, user_service
+from orderful.services.users import UserService, get_current_active_user, user_service
 
-router = APIRouter(prefix="/authentication")
+router = APIRouter(prefix="/auth")
 
 
 @router.post("/register", response_model=user_schemas.User, status_code=status.HTTP_201_CREATED)
@@ -27,8 +27,8 @@ def authentication(
     return user_service.authenticate(data.username, data.password)
 
 
-@router.post("/me", response_model=user_schemas.User)
-def me(user: Annotated[User, Depends(get_current_user)]):
+@router.get("/me", response_model=user_schemas.User)
+def me(user: Annotated[User, Depends(get_current_active_user)]):
     return user
 
 

@@ -42,13 +42,7 @@ class BaseReadOnlyService(SessionMixin, Generic[ModelType, CreateSchemaType, Upd
     def paginate(self, offset: int = settings.OFFSET, limit: int = settings.LIMIT) -> Query[ModelType]:
         return self.session.query(self.model).offset(offset).limit(limit)
 
-    def get_instances_by_user(self, offset: int, limit: int, current_user: User) -> Query[ModelType]:
-        if current_user.superuser:
-            return self.paginate(offset, limit).all()
-
-        return self.paginate(offset, limit).filter_by(user_id=current_user.id).all()
-
-    def get_instance_by_user(self, id: int, current_user: User) -> ModelType:
+    def get_instance(self, id: int) -> ModelType | None:
         instance = self.get(id)
 
         if not instance:
@@ -56,6 +50,17 @@ class BaseReadOnlyService(SessionMixin, Generic[ModelType, CreateSchemaType, Upd
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"The instance with id={id} does not exist.",
             )
+
+        return instance
+
+    def get_instances_by_user(self, offset: int, limit: int, current_user: User) -> Query[ModelType]:
+        if current_user.superuser:
+            return self.paginate(offset, limit).all()
+
+        return self.paginate(offset, limit).filter_by(user_id=current_user.id).all()
+
+    def get_instance_by_user(self, id: int, current_user: User) -> ModelType | None:
+        instance = self.get_instance(id)
 
         if not current_user.superuser and instance.user_id != current_user.id:
             raise HTTPException(
