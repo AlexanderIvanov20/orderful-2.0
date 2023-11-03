@@ -15,7 +15,18 @@ from orderful.services.base import BaseService
 class UserService(PasswordServiceMixin, TokenServiceMixin, BaseService[User, CreateUser, UpdateUser]):
     model: type[User] = User
 
-    def authenticate(self, email: str, password: str) -> User | None:
+    def get_instance_by_user(self, id: int, current_user: User) -> User | None:
+        instance = self.get_instance(id)
+
+        if not current_user.superuser and instance.id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The current user does not have enough privileges.",
+            )
+
+        return instance
+
+    def authenticate(self, email: str, password: str) -> Token | None:
         user = self.filter_by(email=email).first()
 
         if not user or not self.verify_password(password, user.password):
@@ -28,9 +39,7 @@ class UserService(PasswordServiceMixin, TokenServiceMixin, BaseService[User, Cre
         return Token(access_token=access_token, token_type=settings.TOKEN_TYPE)
 
     def authorize(self, data: CreateUser) -> User:
-        user = self.filter_by(email=data.email).exists()
-
-        if user:
+        if self.session.query(self.filter_by(email=data.email).exists()).scalar():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"The user with email={data.email} already exists.",
@@ -65,7 +74,10 @@ def get_current_user(
     user = user_service.verify_token(token)
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The user does not exist.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The user does not exist.",
+        )
 
     return user
 

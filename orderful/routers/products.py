@@ -60,14 +60,13 @@ def update_product(
 ):
     product = product_service.get_instance_by_user(id, active_user)
     return product_service.save_with_associations(
-        product,
         data,
         "category_id",
         "categories",
         "product",
         category_service,
         CategoryProductAssociation,
-        instance=product,
+        product,
     )
 
 
