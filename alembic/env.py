@@ -3,6 +3,10 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
+from alembic.config import Config
+from alembic.operations.ops import MigrationScript
+from alembic.runtime.migration import MigrationContext
+from alembic.script import ScriptDirectory
 from orderful.core.settings import settings
 from orderful.models import Base
 
@@ -61,27 +65,30 @@ def run_migrations_online() -> None:
 
     """
 
-    def process_revision_directives(context, revision, directives):
-        if config.cmd_opts.autogenerate:
-            script = directives[0]
+    def skip_empty_migration(
+        config: Config, script: MigrationScript, directives: list[MigrationScript]
+    ) -> None:
+        if config.cmd_opts.autogenerate and script.upgrade_ops.is_empty():
+            directives[:] = []
 
-            if script.upgrade_ops.is_empty():
-                directives[:] = []
+    def enumerate_migration_name(script: MigrationScript) -> None:
+        head = ScriptDirectory.from_config(context.config).get_current_head()
 
-        # extract Migration
-        # migration_script = directives[0]
-        # # extract current head revision
-        # head_revision = ScriptDirectory.from_config(context.config).get_current_head()
+        if head is None:
+            current_revision_id = 1
+        else:
+            previous_revision_id = int(head[:4].strip("0"))
+            current_revision_id = previous_revision_id + 1
 
-        # if head_revision is None:
-        #     # edge case with first migration
-        #     new_rev_id = 1
-        # else:
-        #     # default branch with incrementation
-        #     last_rev_id = int(head_revision[:4].lstrip("0"))
-        #     new_rev_id = last_rev_id + 1
-        # # fill zeros up to 4 digits: 1 -> 0001
-        # migration_script.rev_id = "{0:04}".format(new_rev_id) + f"_{migration_script.rev_id}"
+        script.rev_id = f"{current_revision_id:04}_{script.rev_id}"
+
+    def process_revision_directives(
+        context: MigrationContext, revision: tuple, directives: list[MigrationScript]
+    ) -> None:
+        script = directives[0]
+
+        skip_empty_migration(context.config, script, directives)
+        enumerate_migration_name(script)
 
     connectable = context.config.attributes.get("connection", None)
 

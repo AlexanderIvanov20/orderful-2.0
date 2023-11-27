@@ -13,9 +13,20 @@ from orderful.services.base import BaseService
 
 
 class UserService(PasswordServiceMixin, TokenServiceMixin, BaseService[User, CreateUser, UpdateUser]):
-    model: User = User
+    model: type[User] = User
 
-    def authenticate(self, email: str, password: str) -> User | None:
+    def get_instance_by_user(self, id: int, current_user: User) -> User | None:
+        instance = self.get_instance(id)
+
+        if not current_user.superuser and instance.id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The current user does not have enough privileges.",
+            )
+
+        return instance
+
+    def authenticate(self, email: str, password: str) -> Token | None:
         user = self.filter_by(email=email).first()
 
         if not user or not self.verify_password(password, user.password):
@@ -27,11 +38,8 @@ class UserService(PasswordServiceMixin, TokenServiceMixin, BaseService[User, Cre
         access_token = self.create_access_token(user.id)
         return Token(access_token=access_token, token_type=settings.TOKEN_TYPE)
 
-    # TODO: re-think this approach, google it.
     def authorize(self, data: CreateUser) -> User:
-        user = self.filter_by(email=data.email).exists()
-
-        if user:
+        if self.session.query(self.filter_by(email=data.email).exists()).scalar():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"The user with email={data.email} already exists.",
@@ -39,22 +47,9 @@ class UserService(PasswordServiceMixin, TokenServiceMixin, BaseService[User, Cre
 
         return self.create(data)
 
-    def get_user(self, id: int, current_user: User) -> User | None:
-        user = self.get(id)
-
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"The user with id={id} does not exist.",
-            )
-
-        if not user.superuser and user != current_user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="The current user does not have enough privileges.",
-            )
-
-        return user
+    def verify_token(self, token: str) -> User:
+        token_data = self.get_token_data(token, settings.SECRET_KEY, authenticate_value="Bearer")
+        return self.get(token_data.sub)
 
     def create(self, data: CreateUser, **kwargs: Any) -> User:
         data.password = self.get_password_hash(data.password)
@@ -73,14 +68,16 @@ def user_service(session: Annotated[Session, Depends(get_session)]):
 
 
 def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
     user_service: Annotated[UserService, Depends(user_service)],
+    token: Annotated[str, Depends(oauth2_scheme)],
 ) -> User:
-    token_data = user_service.get_token_data(token, settings.SECRET_KEY, authenticate_value="Bearer")
-    user = user_service.get(token_data.sub)
+    user = user_service.verify_token(token)
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The user does not exist.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The user does not exist.",
+        )
 
     return user
 
